@@ -1,7 +1,6 @@
 import streamlit as st
 import tensorflow as tf
 import pickle
-from konlpy.tag import Okt
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 # 모델과 토크나이저 불러오기
@@ -9,12 +8,9 @@ model = tf.keras.models.load_model("sentiment_kor_model.h5")
 with open('tokenizer.pickle', 'rb') as handle :
     tokenizer = pickle.load(handle)
 
-# 형태소 분석기 준비
-okt = Okt()
-
 # 전처리 함수
 def tokenize(document):
-    return ' '.join(okt.morphs(document))
+    return document # 간단화: 전처리 생략 (모델 학습 시점의 tokenizer를 그대로 씀)
 
 # 예측 함수
 def predict_sentiment(text):
