@@ -15,6 +15,9 @@ with open("tokenizer.json", "r", encoding="utf-8") as f:
     tokenizer_json = f.read()
 tokenizer = tokenizer_from_json(tokenizer_json)
 
+# 핵심! 누락된 num_words 수동 설정
+tokenizer.num_words = 10000  # 학습 시 지정한 값과 동일하게 맞춰줘야 정확도 유지
+
 # 예측 함수
 def predict_sentiment(text):
     sequences = tokenizer.texts_to_sequences([text])
