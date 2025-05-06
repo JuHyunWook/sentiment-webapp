@@ -1,26 +1,28 @@
 import streamlit as st
 import tensorflow as tf
-import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import tokenizer_from_json
+import json
 
-# 모델과 토크나이저 불러오기
-model = tf.keras.models.load_model("sentiment_kor_model.h5")
-with open('tokenizer.pickle', 'rb') as handle :
-    tokenizer = pickle.load(handle)
+# 모델 로딩 (.keras 포맷)
+# model = tf.keras.models.load_model("sentiment_model.keras")
+# model = tf.keras.models.load_model("sentiment_model_v2.keras")
+# model = tf.keras.models.load_model("sentiment_model_fixed.keras")
+model = tf.keras.models.load_model("sentiment_model.h5")
 
-# 전처리 함수
-def tokenize(document):
-    return document # 간단화: 전처리 생략 (모델 학습 시점의 tokenizer를 그대로 씀)
+# 토크나이저 로딩 (JSON 포맷)
+with open("tokenizer.json", "r", encoding="utf-8") as f:
+    tokenizer_json = f.read()
+tokenizer = tokenizer_from_json(tokenizer_json)
 
 # 예측 함수
 def predict_sentiment(text):
-    tokenized = tokenize(text)
-    sequence = tokenizer.texts_to_sequences([tokenized])
-    padded = pad_sequences(sequence, maxlen=100)
-    score = model.predict(padded)[0][0]
+    sequences = tokenizer.texts_to_sequences([text])
+    padded = pad_sequences(sequences, maxlen=100)
+    score = float(model.predict(padded)[0][0])  # float으로 변환
     return score
 
-# Streamlit UI 구성
+# Streamlit 페이지 설정
 st.set_page_config(page_title="한글 감정 분석기", layout="centered")
 
 st.markdown("## 🎭 감정 분석 웹앱")
@@ -35,11 +37,11 @@ if st.button("🔍 감정 분석하기"):
         st.warning('리뷰를 입력해 주세요.')
     else:
         score = predict_sentiment(text_input)
+
         st.markdown("#### 📊 예측 결과")
-        st.progress(float(score))
+        st.progress(min(max(score, 0.0), 1.0))  # 예외 방지용 범위 고정
 
         if score >= 0.5:
             st.success(f"👍 긍정 리뷰입니다! (확률: {score:.2f})")
         else:
             st.error(f"👎 부정 리뷰입니다. (확률: {score:.2f})")
-
