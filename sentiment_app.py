@@ -9,7 +9,8 @@ import json
 # model = tf.keras.models.load_model("sentiment_model_v2.keras")
 # model = tf.keras.models.load_model("sentiment_model_fixed.keras")
 # model = tf.keras.models.load_model("sentiment_model.h5")
-model = tf.keras.models.load_model("sentiment_model")  # 폴더 형식 로딩
+# model = tf.keras.models.load_model("sentiment_model")  # 폴더 형식 로딩
+model = tf.keras.models.load_model("sentiment_model.keras")
 
 # 토크나이저 로딩 (JSON 포맷)
 with open("tokenizer.json", "r", encoding="utf-8") as f:
