@@ -1,3 +1,5 @@
 streamlit
 tensorflow
 scikit-learn
+pandas
+konlpy

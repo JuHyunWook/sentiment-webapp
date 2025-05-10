@@ -1,52 +1,35 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import tokenizer_from_json
 import json
+from tensorflow.keras.preprocessing.text import tokenizer_from_json
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# 모델 로딩 (.keras 포맷)
-# model = tf.keras.models.load_model("sentiment_model.keras")
-# model = tf.keras.models.load_model("sentiment_model_v2.keras")
-# model = tf.keras.models.load_model("sentiment_model_fixed.keras")
-# model = tf.keras.models.load_model("sentiment_model.h5")
-# model = tf.keras.models.load_model("sentiment_model")  # 폴더 형식 로딩
+# 모델 로딩
 model = tf.keras.models.load_model("sentiment_model.keras")
 
-# 토크나이저 로딩 (JSON 포맷)
+# 토크나이저 로딩
 with open("tokenizer.json", "r", encoding="utf-8") as f:
-    tokenizer_json = f.read()
-tokenizer = tokenizer_from_json(tokenizer_json)
-
-# 핵심! 누락된 num_words 수동 설정
-tokenizer.num_words = 10000  # 학습 시 지정한 값과 동일하게 맞춰줘야 정확도 유지
+    tokenizer_config = f.read()
+    tokenizer = tokenizer_from_json(tokenizer_config)
 
 # 예측 함수
 def predict_sentiment(text):
-    sequences = tokenizer.texts_to_sequences([text])
-    padded = pad_sequences(sequences, maxlen=100)
-    score = float(model.predict(padded)[0][0])  # float으로 변환
+    sequence = tokenizer.texts_to_sequences([text])  # ✅ 한 문장 문자열
+    padded = pad_sequences(sequence, maxlen=100)
+    score = model.predict(padded)[0][0]
     return score
 
-# Streamlit 페이지 설정
-st.set_page_config(page_title="한글 감정 분석기", layout="centered")
+# Streamlit UI
+st.title("🎭 한글 감정 분석기")
+text_input = st.text_area("✍️ 리뷰를 입력하세요", placeholder="예: 이 영화 정말 감동적이었어요.")
 
-st.markdown("## 🎭 감정 분석 웹앱")
-st.markdown("### 🎬 한글 영화 리뷰를 입력하면 AI가 감정을 예측합니다.")
-st.markdown("---")
-
-# 입력창
-text_input = st.text_area("✍️ 리뷰를 입력해 주세요", placeholder="예: 이 영화 너무 감동적이었어요!")
-
-if st.button("🔍 감정 분석하기"):
-    if text_input.strip() == "":
-        st.warning('리뷰를 입력해 주세요.')
+if st.button("감정 분석하기"):
+    if not text_input.strip():
+        st.warning("리뷰를 입력해 주세요.")
     else:
         score = predict_sentiment(text_input)
-
-        st.markdown("#### 📊 예측 결과")
-        st.progress(min(max(score, 0.0), 1.0))  # 예외 방지용 범위 고정
-
+        st.markdown(f"**예측 확률:** {score:.2f}")
         if score >= 0.5:
-            st.success(f"👍 긍정 리뷰입니다! (확률: {score:.2f})")
+            st.success("👍 긍정 리뷰입니다.")
         else:
-            st.error(f"👎 부정 리뷰입니다. (확률: {score:.2f})")
+            st.error("👎 부정 리뷰입니다.")
